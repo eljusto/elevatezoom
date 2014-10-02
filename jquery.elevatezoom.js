@@ -310,14 +310,24 @@ if ( typeof Object.create !== 'function' ) {
 						self.$elem.trigger('click');
 					});
 				}else{
-					self.zoomWindow = $("<div style='z-index:999;left:"+(self.windowOffsetLeft)+"px;top:"+(self.windowOffsetTop)+"px;" + self.zoomWindowStyle + "' class='zoomWindow'>&nbsp;</div>")
-					.appendTo(self.zoomContainer)
-					.click(function () {
-						self.$elem.trigger('click');
-					});
-				}              
-				self.zoomWindowContainer = $('<div/>').addClass('zoomWindowContainer').css("width",self.options.zoomWindowWidth);
-				self.zoomWindow.wrap(self.zoomWindowContainer);
+          if (self.options.zoomContainer) {
+            self.options.zoomContainer.addClass('zoomWindowContainer');
+            self.zoomWindow = $("<div style='"+ self.zoomWindowStyle + ";z-index:999;top:0;left:0;width:100%;height:100%;' class='zoomWindow'>&nbsp;</div>")
+            .appendTo(self.options.zoomContainer)
+            .click(function () {
+              self.$elem.trigger('click');
+            });
+          } else {
+            self.zoomWindow = $("<div style='z-index:999;left:"+(self.windowOffsetLeft)+"px;top:"+(self.windowOffsetTop)+"px;" + self.zoomWindowStyle + "' class='zoomWindow'>&nbsp;</div>")
+            .appendTo(self.zoomContainer)
+            .click(function () {
+              self.$elem.trigger('click');
+            });
+          self.zoomWindowContainer = $('<div/>').addClass('zoomWindowContainer').css("width",self.options.zoomWindowWidth);
+          self.zoomWindow.wrap(self.zoomWindowContainer);
+          }              
+        }
+        
 
 
 				//  self.captionStyle = "text-align: left;background-color: black;color: white;font-weight: bold;padding: 10px;font-family: sans-serif;font-size: 11px";                                                                                                                                                                                                                                          
@@ -583,17 +593,19 @@ if ( typeof Object.create !== 'function' ) {
 				//will checking if the image needs changing before running this code work faster?
 				if(self.options.responsive && !self.options.scrollZoom){
 					if(self.options.showLens){ 
-						if(self.nzHeight < self.options.zoomWindowWidth/self.widthRatio){
+            var zwWidth = (self.options.zoomContainer) ? self.zoomWindow.width() : self.options.zoomWindowWidth;
+            var zwHeight = (self.options.zoomContainer) ? self.zoomWindow.height() : self.options.zoomWindowHeight;
+						if(self.nzHeight < zwWidth/self.widthRatio){
 							lensHeight = self.nzHeight;              
 						}
 						else{
-							lensHeight = String((self.options.zoomWindowHeight/self.heightRatio))
+							lensHeight = String((zwHeight/self.heightRatio))
 						}
-						if(self.largeWidth < self.options.zoomWindowWidth){
+						if(self.largeWidth < zwWidth){
 							lensWidth = self.nzWidth;
 						}       
 						else{
-							lensWidth =  (self.options.zoomWindowWidth/self.widthRatio);
+							lensWidth =  (zwWidth/self.widthRatio);
 						}
 						self.widthRatio = self.largeWidth / self.nzWidth;
 						self.heightRatio = self.largeHeight / self.nzHeight;        
@@ -602,19 +614,19 @@ if ( typeof Object.create !== 'function' ) {
 
 							//possibly dont need to keep recalcalculating
 							//if the lens is heigher than the image, then set lens size to image size
-							if(self.nzHeight < self.options.zoomWindowWidth/self.widthRatio){
+							if(self.nzHeight < self.zoomWindow.width()/self.widthRatio){
 								lensHeight = self.nzHeight;  
 
 							}
 							else{
-								lensHeight = String((self.options.zoomWindowHeight/self.heightRatio))
+								lensHeight = String((zwHeight/self.heightRatio))
 							}
 
 							if(self.options.zoomWindowWidth < self.options.zoomWindowWidth){
 								lensWidth = self.nzWidth;
 							}       
 							else{
-								lensWidth =  (self.options.zoomWindowWidth/self.widthRatio);
+								lensWidth = String((zwWidth/self.widthRatio));
 							}            
 
 							self.zoomLens.css('width', lensWidth);    
@@ -936,6 +948,13 @@ if ( typeof Object.create !== 'function' ) {
 						self.windowOffsetTop = (self.options.zoomWindowOffety);//DONE - 1
 					self.windowOffsetLeft =(self.nzWidth); //DONE 1, 2, 3, 4, 16
 					} 
+
+				if(self.options.zoomContainer || self.options.zoomType == "inner") {
+					self.zoomWindow.css({ top: 0});
+					self.zoomWindow.css({ left: 0});
+
+				}   
+          
 				} //end isNAN
 				else{
 					//WE CAN POSITION IN A CLASS - ASSUME THAT ANY STRING PASSED IS
@@ -955,7 +974,7 @@ if ( typeof Object.create !== 'function' ) {
 				self.zoomWindow.css({ top: self.windowOffsetTop});
 				self.zoomWindow.css({ left: self.windowOffsetLeft});
 
-				if(self.options.zoomType == "inner") {
+				if(self.options.zoomContainer || self.options.zoomType == "inner") {
 					self.zoomWindow.css({ top: 0});
 					self.zoomWindow.css({ left: 0});
 
@@ -1738,6 +1757,7 @@ if ( typeof Object.create !== 'function' ) {
 			zoomWindowOffety: 0,
 			zoomWindowPosition: 1,
 			zoomWindowBgColour: "#fff",
+      zoomContainer: undefined, //use existing block as wrapper for zoom container
 			lensFadeIn: false,
 			lensFadeOut: false,
 			debug: false,
